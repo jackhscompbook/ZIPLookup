@@ -1,83 +1,160 @@
 
-import time
-
 import requests
 import argparse
 from bs4 import BeautifulSoup
 
 
 
-class ZIPLookup():
+class lookerUpper():
 
     def __init__(self):
-        self.logo = '''
-     _______       _                 _                
-    |___  (_)     | |               | |               
-       / / _ _ __ | |     ___   ___ | | ___   _ _ __  
-      / / | | '_ \\| |    / _ \\ / _ \\| |/ / | | | '_ \\ 
-    ./ /__| | |_) | |___| (_) | (_) |   <| |_| | |_) |
-    \\_____/_| .__/\\_____/\\___/ \\___/|_|\\_\\__,_| .__/ 
-            | |                                | |    
-            |_|                                |_|
-
-    '''
+        self.logo = [' ',
+                    ' _______       _                 _               ',
+                    '|___  (_)     | |               | |               ',
+                    '   / / _ _ __ | |     ___   ___ | | ___   _ _ __  ',
+                    '  / / | | \'_ \\| |    / _ \\ / _ \\| |/ / | | | \'_ \\', 
+                    './ /__| | |_) | |___| (_) | (_) |   <| |_| | |_) | ',
+                    '\\_____/_| .__/\\_____/\\___/ \\___/|_|\\_\\__,__| .__/ ',
+                    '        | |                                | |    ',
+                    '        |_|                                |_|',
+                    ' '
+                    ]
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('zipCode', type=str, help='Zip Code which gets looked up.')
-        self.parser.add_argument('-M', '--moreInfo', action='store_true', help='Use this Tag if you want more information about the Zip Code. (Non Working ATM)')
-        self.parser.add_argument('-d', '--debug', action='store_true', help='Use this flag to activate debug mode, which prints more information about the program as it runs.')
-        self.parser.add_argument('-D', '--verboseDB', action='store_true', help='Use this flag to activate verbose debug mode, which prints more information than you want about the program as it runs.')
-        self.parser.add_argument('-o', '--offline', action='store_true', help='This flag disables online mode. This mode requires you have the offline zipcode database file in the proper dir. It is stored in ./data/ZIPdata.txt')
-        self.headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}  
+        self.parser.add_argument('-d', '--debug', action='store_true', help='Shows extra information as the program runs.')
+        self.parser.add_argument('-D', '--verboseDB', action='store_true', help='Like debug, but it shows EVEN more info.')
+        self.parser.add_argument('-u', '--userAgent', help='Used to define a userAgent if you don\'t want to use the default one')
+        self.defaultUserAgent = 'Mozilla/5.0 (Windows NT 5.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
+        self.headers = {
+                            'authority': 'www.unitedstateszipcodes.org',
+                            'cache-control': 'max-age=0',
+                            'upgrade-insecure-requests': '1',
+                            'origin': 'https://www.unitedstateszipcodes.org',
+                            'content-type': 'application/x-www-form-urlencoded',
+                            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36',
+                            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                            'sec-fetch-site': 'same-origin',
+                            'sec-fetch-mode': 'navigate',
+                            'sec-fetch-user': '?1',
+                            'sec-fetch-dest': 'document',
+                            'referer': 'https://www.unitedstateszipcodes.org/63131/',
+                            'accept-language': 'en-US,en;q=0.9',
+                        }
+        self.data = {
+                      'q': None
+                    }
 
-    def startUp(self):  
-        self.startTime = time.time()
+        # userAgents = [
+        #     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
+        #     'Mozilla/5.0 (Windows NT 6.3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 YaBrowser/17.6.1.749 Yowser/2.5 Safari/537.36',
+        #     'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 123.1.0.26.115 (iPhone11,6; iOS 13_3; en_US; en-US; scale=3.00; 1242x2688; 190542906)',
+        #     'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        #     'Ancestry 9.13 rv:6189 (iPad; iOS 11.1; en-CA)'
+        # ]
 
+
+    def startUp(self):
+
+        for i in self.logo:
+            print(i) 
+        print('Made by [REDACTED FOR COLLEGE BOARD] (Contact with issues)')
+        print('Looking Up ZIP code...')
         self.parseArgs()
-
-        print(self.logo)
-        print('Created by a_personlol#2828, contact me if you run into issues.')
-        print('Looking up ZIPCode')
         if self.args.debug == True:
-            print('[*] Debug mode is active.')
+            print('[*] Getting page...')
+            self.getPage()
+            print('[*] Done...')
+            print('[*] Parsing page...')
+            self.parsePage()
+            print('[*] Done...')
+            print('[*] Displaying City:')
+            self.displayCityDB()
         elif self.args.verboseDB == True:
-            print('[%s] verboseDB mode is active (Why did you do this?)' % time.localtime())
-
-
-        if self.args.offline == True:
-            self.getOffline()
-            self.displayOffline()
+            print('[*] Getting page...')
+            self.getPageVDB()
+            print('[*] Done...')
+            print('[*] Parsing page...')
+            self.parsePageVDB()
+            print('[*] Done...')
+            print('[*] Displaying City:')
+            self.displayCityDB()
         else:
             self.getPage()
             self.parsePage()
-            self.displayPage()
+            self.displayCity()
 
-        self.endTime = time.time()
-        self.elapsedTime = self.startTime - self.endTime
-        
     def parseArgs(self):
-        if self.args.debug == True:
-            print('[*] Parsing web page...')
-            self.args = parser.parse_args()
-            print('[*] Done...')
+
+        self.args = self.parser.parse_args()
 
     def getPage(self):
-        self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (args.zipCode), headers=headers)
+
+        self.data['q'] = self.args.zipCode
+        if self.args.userAgent != None:
+            self.headers['user-agent'] = self.args.userAgent
+        else:
+            pass
+        self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (self.args.zipCode), headers=self.headers)
+        #print(self.page)
 
     def parsePage(self):
-        self.soup = BeautifulSoup(page.text, 'html.parser')
-        self.city = soup.findAll('td')[0]
 
-    def displayPage(self):
-        print(self.city)
+        self.soup = BeautifulSoup(self.page.text, 'html.parser')
+        try:
+            self.city = self.soup.findAll('td')[0]
+            self.city = str(self.city)[4:]
+            self.city = self.city[:-44]
+        except IndexError as e:
+            self.city = 'None Found'
 
-    def getOffline(self):
-        pass
+    def getPageVDB(self):
 
-    def displayOffline(self):
-        pass
+        print('[*]\tDefining data paramter...')
+        self.data['q'] = self.args.zipCode
+        print('[*]\tDone...')
+        print('[*]\tAttempting to assign a user defined UA...')
+        if self.args.userAgent != None:
+            self.headers['user-agent'] = self.args.userAgent
+            print('[*]\t\tUser defined UA assigned as "', end='')
+            if len(self.args.userAgent) <= 15:
+                print(self.args.userAgent, end='')
+            else:
+                print(self.args.userAgent[:15], end='')
+                print('...', end='')
+            print('"')
+        else:
+            print('[*]\t\tNo user defined UA was specified, using default...')
+        print('[*]\tRequesting page...')
+        self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (self.args.zipCode), headers=self.headers)
+        print('[*]\tDone [%s]...' % (self.page))
+        #print(self.page)
 
-if __name__ == '__name__':
+    def parsePageVDB(self):
 
-    ZIPLookup = ZIPLookup()
+        print('[*]\tStarting Soup...')
+        self.soup = BeautifulSoup(self.page.text, 'html.parser')
+        print('[*]\tDone...')
+        try:
+            print('[*]\tFormatting result...')
+            self.city = self.soup.findAll('td')[0]
+            self.city = str(self.city)[4:]
+            self.city = self.city[:-44]
+            print('[*]\tDone...')
+        except IndexError as e:
+            self.city = 'None Found'
 
-    ZIPLookup.startUp()
+    def displayCityDB(self):
+        print('\n\t%s\n' % self.city)
+
+    def displayCity(self):
+        print('\nCity: %s\n' % self.city)
+
+
+if __name__ == '__main__':
+
+    lU = lookerUpper()
+
+    lU.startUp()
+
+
+
