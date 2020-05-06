@@ -1,7 +1,8 @@
-
 import requests
 import argparse
 from bs4 import BeautifulSoup
+
+from random_proxies import random_proxy
 
 
 
@@ -20,10 +21,11 @@ class lookerUpper():
                     ' '
                     ]
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('zipCode', type=str, help='Zip Code which gets looked up.')
+        self.parser.add_argument('zipCode', type=str, help='Zip Code which gets looked up. If you want to look up a range of codes, do this: code1/code2')
         self.parser.add_argument('-d', '--debug', action='store_true', help='Shows extra information as the program runs.')
         self.parser.add_argument('-D', '--verboseDB', action='store_true', help='Like debug, but it shows EVEN more info.')
         self.parser.add_argument('-u', '--userAgent', help='Used to define a userAgent if you don\'t want to use the default one')
+        self.parser.add_argument('-p', '--proxy', action='store_true', help='use this option if you want to use a proxy server')
         self.defaultUserAgent = 'Mozilla/5.0 (Windows NT 5.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
         self.headers = {
                             'authority': 'www.unitedstateszipcodes.org',
@@ -41,7 +43,10 @@ class lookerUpper():
                             'accept-language': 'en-US,en;q=0.9',
                         }
         self.data = {
-                      'q': None
+                      'q':None
+                    }
+        self.proxies = {
+                      'http':None
                     }
 
         # userAgents = [
@@ -62,7 +67,10 @@ class lookerUpper():
         self.parseArgs()
         if self.args.debug == True:
             print('[*] Getting page...')
-            self.getPage()
+            if self.args.proxy == True:
+                self.getPageProxy()
+            else:
+                self.getPage()
             print('[*] Done...')
             print('[*] Parsing page...')
             self.parsePage()
@@ -71,7 +79,10 @@ class lookerUpper():
             self.displayCityDB()
         elif self.args.verboseDB == True:
             print('[*] Getting page...')
-            self.getPageVDB()
+            if self.args.proxy == True:
+                self.getPageProxyVDB()
+            else:
+                self.getPageVDB()
             print('[*] Done...')
             print('[*] Parsing page...')
             self.parsePageVDB()
@@ -79,7 +90,10 @@ class lookerUpper():
             print('[*] Displaying City:')
             self.displayCityDB()
         else:
-            self.getPage()
+            if self.args.proxy == True:
+                self.getPageProxy()
+            else:
+                self.getPage()
             self.parsePage()
             self.displayCity()
 
@@ -89,6 +103,8 @@ class lookerUpper():
 
     def getPage(self):
 
+        if self.args
+
         self.data['q'] = self.args.zipCode
         if self.args.userAgent != None:
             self.headers['user-agent'] = self.args.userAgent
@@ -97,15 +113,42 @@ class lookerUpper():
         self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (self.args.zipCode), headers=self.headers)
         #print(self.page)
 
-    def parsePage(self):
 
-        self.soup = BeautifulSoup(self.page.text, 'html.parser')
-        try:
-            self.city = self.soup.findAll('td')[0]
-            self.city = str(self.city)[4:]
-            self.city = self.city[:-44]
-        except IndexError as e:
-            self.city = 'None Found'
+    def getPageProxy(self):
+
+        self.data['q'] = self.args.zipCode
+        self.proxies['http'] = random_proxy(protocol='http')
+        if self.args.userAgent != None:
+            self.headers['user-agent'] = self.args.userAgent
+        else:
+            pass
+        self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (self.args.zipCode), headers=self.headers, proxies=self.proxies)
+        #print(self.page)
+
+    def getPageProxyVDB(self):
+
+        print('[*]\tDefining data paramter...')
+        self.data['q'] = self.args.zipCode
+        print('[*]\tDone...')
+        print('[*]\tAttempting to assign a user defined UA...')
+        if self.args.userAgent != None:
+            self.headers['user-agent'] = self.args.userAgent
+            print('[*]\t\tUser defined UA assigned as "', end='')
+            if len(self.args.userAgent) <= 15:
+                print(self.args.userAgent, end='')
+            else:
+                print(self.args.userAgent[:15], end='')
+                print('...', end='')
+            print('"')
+        else:
+            print('[*]\t\tNo user defined UA was specified, using default...')
+        print('[*]\tFinding a proxy...')
+        self.proxies['http'] = random_proxy(protocol='http')
+        print('[*]\tDone (Using proxy [%s])...' % (self.proxies['http']))
+        print('[*]\tRequesting page...')
+        self.page = requests.get('https://www.unitedstateszipcodes.org/%s/' % (self.args.zipCode), headers=self.headers)
+        print('[*]\tDone [%s]...' % (self.page))
+        #print(self.page)
 
     def getPageVDB(self):
 
@@ -129,6 +172,16 @@ class lookerUpper():
         print('[*]\tDone [%s]...' % (self.page))
         #print(self.page)
 
+    def parsePage(self):
+
+        self.soup = BeautifulSoup(self.page.text, 'html.parser')
+        try:
+            self.city = self.soup.findAll('td')[0]
+            self.city = str(self.city)[4:]
+            self.city = self.city[:-44]
+        except IndexError as e:
+            self.city = 'None Found'
+
     def parsePageVDB(self):
 
         print('[*]\tStarting Soup...')
@@ -150,11 +203,9 @@ class lookerUpper():
         print('\nCity: %s\n' % self.city)
 
 
+
 if __name__ == '__main__':
 
     lU = lookerUpper()
 
     lU.startUp()
-
-
-
