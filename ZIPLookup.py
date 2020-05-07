@@ -1,3 +1,4 @@
+
 import requests
 import argparse
 from bs4 import BeautifulSoup
@@ -21,9 +22,9 @@ class lookerUpper():
                     ' '
                     ]
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('zipCode', type=str, help='Zip Code which gets looked up. If you want to look up a range of codes, do this: code1/code2')
+        self.parser.add_argument('zipCode', type=str, help='Zip Code which gets looked up. If you want to look up a range of codes, do this: code1/code2 (Range feature wip)')
         self.parser.add_argument('-d', '--debug', action='store_true', help='Shows extra information as the program runs.')
-        self.parser.add_argument('-D', '--verboseDB', action='store_true', help='Like debug, but it shows EVEN more info.')
+        self.parser.add_argument('-D', '--verboseDB', action='store_true', help='Like debug, but it shows even more info.')
         self.parser.add_argument('-u', '--userAgent', help='Used to define a userAgent if you don\'t want to use the default one')
         self.parser.add_argument('-p', '--proxy', action='store_true', help='use this option if you want to use a proxy server')
         self.defaultUserAgent = 'Mozilla/5.0 (Windows NT 5.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
@@ -49,22 +50,17 @@ class lookerUpper():
                       'http':None
                     }
 
-        # userAgents = [
-        #     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-        #     'Mozilla/5.0 (Windows NT 6.3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 YaBrowser/17.6.1.749 Yowser/2.5 Safari/537.36',
-        #     'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 123.1.0.26.115 (iPhone11,6; iOS 13_3; en_US; en-US; scale=3.00; 1242x2688; 190542906)',
-        #     'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
-        #     'Ancestry 9.13 rv:6189 (iPad; iOS 11.1; en-CA)'
-        # ]
-
 
     def startUp(self):
 
         for i in self.logo:
             print(i) 
-        print('Made by [REDACTED FOR COLLEGE BOARD] (Contact with issues)')
-        print('Looking Up ZIP code...')
+        print('Made by [REDACTED FOR COLLEGE BOARD] (Contact if you encounter issues)')
         self.parseArgs()
+        # if self.args.help == True:
+        #     print('Showing help...')
+        # else:
+        print('Looking Up ZIP code...')
         if self.args.debug == True:
             print('[*] Getting page...')
             if self.args.proxy == True:
@@ -102,8 +98,6 @@ class lookerUpper():
         self.args = self.parser.parse_args()
 
     def getPage(self):
-
-        if self.args
 
         self.data['q'] = self.args.zipCode
         if self.args.userAgent != None:
